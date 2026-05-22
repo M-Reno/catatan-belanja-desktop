@@ -13,7 +13,9 @@ from pathlib import Path
 # =============================================================================
 
 # File database disimpan di root folder proyek (satu level di atas src/)
-_DIREKTORI_SRC  = Path(__file__).resolve().parent.parent   # .../src/
+_DIREKTORI_SRC = Path(__file__).resolve().parent.parent  # lokasi folder src/
+if str(_DIREKTORI_SRC) not in sys.path:
+    sys.path.insert(0, str(_DIREKTORI_SRC))
 DIREKTORI_PROYEK = _DIREKTORI_SRC.parent                   # .../catatan_belanja_beta1/
 PATH_DATABASE    = DIREKTORI_PROYEK / "catatan_belanja.db"
 
