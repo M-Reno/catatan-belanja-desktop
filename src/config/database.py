@@ -3,9 +3,14 @@
 # Dijalankan saat aplikasi pertama kali dibuka via inisialisasi_database()
 
 import sqlite3
-import os
 import sys
 from pathlib import Path
+
+# Pastikan folder src/ ada di sys.path agar import antar modul berfungsi
+# tanpa perlu set PYTHONPATH manual dari terminal
+_DIREKTORI_SRC = Path(__file__).resolve().parent.parent  # .../src/
+if str(_DIREKTORI_SRC) not in sys.path:
+    sys.path.insert(0, str(_DIREKTORI_SRC))
 
 
 # =============================================================================
@@ -13,9 +18,6 @@ from pathlib import Path
 # =============================================================================
 
 # File database disimpan di root folder proyek (satu level di atas src/)
-_DIREKTORI_SRC = Path(__file__).resolve().parent.parent  # lokasi folder src/
-if str(_DIREKTORI_SRC) not in sys.path:
-    sys.path.insert(0, str(_DIREKTORI_SRC))
 DIREKTORI_PROYEK = _DIREKTORI_SRC.parent                   # .../catatan_belanja_beta1/
 PATH_DATABASE    = DIREKTORI_PROYEK / "catatan_belanja.db"
 
@@ -162,7 +164,7 @@ def _isi_data_awal(koneksi: sqlite3.Connection) -> None:
 def inisialisasi_database() -> sqlite3.Connection:
     """
     Inisialisasi penuh database saat aplikasi pertama kali dibuka.
-    Langkah: buka koneksi → buat tabel → isi seeder → tandai periode kadaluarsa.
+    Langkah: buka koneksi -> buat tabel -> isi seeder -> tandai periode kadaluarsa.
 
     Mengembalikan koneksi yang sudah siap dipakai oleh seluruh aplikasi.
     Jika terjadi error kritis, tampilkan dialog dan keluar dengan aman (NFR-05).
@@ -177,14 +179,12 @@ def inisialisasi_database() -> sqlite3.Connection:
         _isi_data_awal(koneksi)
 
         # Tandai periode yang sudah melewati tanggal selesai sebagai tidak aktif
-        # Import dilakukan di sini untuk menghindari circular import
         from models.budget_model import tandai_periode_selesai_otomatis
         tandai_periode_selesai_otomatis(koneksi)
 
         return koneksi
 
     except sqlite3.DatabaseError as error_db:
-        # Database rusak atau tidak bisa dibuka — tampilkan pesan lalu keluar (NFR-05)
         _tampilkan_error_kritis(
             f"Database tidak dapat dibuka atau rusak.\n\n"
             f"Detail: {error_db}\n\n"
@@ -193,7 +193,6 @@ def inisialisasi_database() -> sqlite3.Connection:
         )
 
     except Exception as error_umum:
-        # Error tidak terduga saat inisialisasi
         _tampilkan_error_kritis(
             f"Terjadi error saat memulai aplikasi.\n\n"
             f"Detail: {error_umum}"
@@ -209,7 +208,6 @@ def _tampilkan_error_kritis(pesan: str) -> None:
         import tkinter as tk
         from tkinter import messagebox
 
-        # Sembunyikan jendela utama tkinter yang muncul otomatis
         root_sementara = tk.Tk()
         root_sementara.withdraw()
 
@@ -220,11 +218,9 @@ def _tampilkan_error_kritis(pesan: str) -> None:
         root_sementara.destroy()
 
     except Exception:
-        # Jika bahkan tkinter tidak bisa dibuka, cetak ke terminal
         print(f"[ERROR KRITIS] {pesan}", file=sys.stderr)
 
     finally:
-        # Keluar dengan aman menggunakan kode error 1
         sys.exit(1)
 
 
@@ -237,7 +233,6 @@ if __name__ == "__main__":
 
     koneksi_test = inisialisasi_database()
 
-    # Verifikasi tabel terbentuk
     tabel = koneksi_test.execute(
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
     ).fetchall()
@@ -245,13 +240,11 @@ if __name__ == "__main__":
     for t in tabel:
         print(f"  - {t['name']}")
 
-    # Verifikasi seeder kategori
     kategori = koneksi_test.execute("SELECT * FROM tb_kategori").fetchall()
     print(f"\nKategori ({len(kategori)} item):")
     for k in kategori:
         print(f"  [{k['id_kategori']}] {k['nama_kategori']}")
 
-    # Verifikasi seeder satuan
     satuan = koneksi_test.execute("SELECT * FROM tb_satuan").fetchall()
     print(f"\nSatuan ({len(satuan)} item):")
     for s in satuan:
