@@ -5,6 +5,7 @@
 import sqlite3
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Pastikan folder src/ ada di sys.path agar import antar modul berfungsi
 # tanpa perlu set PYTHONPATH manual dari terminal
@@ -161,7 +162,7 @@ def _isi_data_awal(koneksi: sqlite3.Connection) -> None:
 # FUNGSI UTAMA
 # =============================================================================
 
-def inisialisasi_database() -> sqlite3.Connection:
+def inisialisasi_database() -> Optional[sqlite3.Connection]:
     """
     Inisialisasi penuh database saat aplikasi pertama kali dibuka.
     Langkah: buka koneksi -> buat tabel -> isi seeder -> tandai periode kadaluarsa.
@@ -191,12 +192,14 @@ def inisialisasi_database() -> sqlite3.Connection:
             f"Pastikan file 'catatan_belanja.db' tidak dibuka oleh program lain,\n"
             f"atau hapus file tersebut agar aplikasi membuat database baru."
         )
+        return None
 
     except Exception as error_umum:
         _tampilkan_error_kritis(
             f"Terjadi error saat memulai aplikasi.\n\n"
             f"Detail: {error_umum}"
         )
+        return None
 
 
 def _tampilkan_error_kritis(pesan: str) -> None:
@@ -232,6 +235,11 @@ if __name__ == "__main__":
     print(f"Inisialisasi database di: {PATH_DATABASE}")
 
     koneksi_test = inisialisasi_database()
+
+    # Hentikan verifikasi jika database gagal diinisialisasi
+    if koneksi_test is None:
+        print("[ERROR] Database gagal diinisialisasi.", file=sys.stderr)
+        sys.exit(1)
 
     tabel = koneksi_test.execute(
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
