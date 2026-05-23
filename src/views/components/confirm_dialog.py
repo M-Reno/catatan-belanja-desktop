@@ -16,7 +16,7 @@ from utils.theme_helper import (
     BG_SURFACE, TEXT_PRIMARY,
     COLOR_DANGER, ACCENT_PRIMARY, ACCENT_HOVER,
     BTN_SECONDARY_BG, BTN_SECONDARY_TEXT, BORDER_COLOR,
-    FONT_BODY, FONT_BODY_BOLD, FONT_SMALL,
+    get_font,
     HEIGHT_BTN_SECONDARY,
     RADIUS_BTN,
     SPACE_MD, SPACE_LG, SPACE_XL
@@ -59,14 +59,19 @@ class ConfirmDialog(ctk.CTkToplevel):
         self.after(100, self.tombol_batal.focus_set)
 
     def _pusatkan_dialog(self, master) -> None:
-        """Posisikan dialog tepat di tengah jendela induk."""
-        self.update_idletasks()
-        try:
-            x = master.winfo_rootx() + (master.winfo_width() // 2) - 180
-            y = master.winfo_rooty() + (master.winfo_height() // 2) - 80
-            self.geometry(f"360x160+{x}+{y}")
-        except Exception:
-            pass
+        """Posisikan dialog di tengah layar — tunggu sampai window benar-benar muncul."""
+        def _terapkan():
+            self.withdraw()  # sembunyikan sementara
+            self.update_idletasks()
+            lebar = 360
+            tinggi = 160
+            lebar_layar = self.winfo_screenwidth()
+            tinggi_layar = self.winfo_screenheight()
+            x = (lebar_layar - lebar) // 2
+            y = (tinggi_layar - tinggi) // 2
+            self.geometry(f"{lebar}x{tinggi}+{x}+{y}")
+            self.deiconify()  # tampilkan di posisi yang benar
+        self.after(50, _terapkan)
 
     def _bangun_ui(self, pesan: str, label_konfirmasi: str, tipe: str) -> None:
         """Bangun semua widget di dalam dialog."""
@@ -95,7 +100,7 @@ class ConfirmDialog(ctk.CTkToplevel):
         label_pesan = ctk.CTkLabel(
             frame_pesan,
             text=pesan,
-            font=FONT_BODY,
+            font=get_font("body"),
             text_color=TEXT_PRIMARY,
             wraplength=270,
             justify="left"
@@ -110,7 +115,7 @@ class ConfirmDialog(ctk.CTkToplevel):
         self.tombol_batal = ctk.CTkButton(
             frame_tombol,
             text="Batal",
-            font=FONT_BODY,
+            font=get_font("body"),
             fg_color=BTN_SECONDARY_BG,
             hover_color=BORDER_COLOR,
             text_color=BTN_SECONDARY_TEXT,
@@ -126,7 +131,7 @@ class ConfirmDialog(ctk.CTkToplevel):
             self.tombol_konfirmasi = ctk.CTkButton(
                 frame_tombol,
                 text=label_konfirmasi,
-                font=FONT_BODY_BOLD,
+                font=get_font("body_bold"),
                 fg_color="transparent",
                 hover_color="#FEE2E2",    # merah muda saat hover
                 text_color="#DC2626",    # teks merah
@@ -141,7 +146,7 @@ class ConfirmDialog(ctk.CTkToplevel):
             self.tombol_konfirmasi = ctk.CTkButton(
                 frame_tombol,
                 text=label_konfirmasi,
-                font=FONT_BODY_BOLD,
+                font=get_font("body_bold"),
                 fg_color=ACCENT_PRIMARY,
                 hover_color=ACCENT_HOVER,
                 text_color="#FFFFFF",

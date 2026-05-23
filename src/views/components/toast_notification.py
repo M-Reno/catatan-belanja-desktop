@@ -3,7 +3,7 @@ toast_notification.py — Notifikasi singkat yang muncul otomatis dan hilang sen
 Digunakan oleh: semua page setelah aksi simpan, hapus, atau ekspor berhasil
 
 Spesifikasi (Design System §3.8):
-- Muncul di pojok kanan bawah area konten, 24px dari tepi
+- Muncul di pojok kanan atas area konten, 24px dari tepi (agar tidak overlap tombol)
 - Durasi tampil: 2500ms, lalu hilang otomatis
 - Sukses: COLOR_SUCCESS, ikon ✓
 - Error: COLOR_DANGER, ikon ✕
@@ -14,7 +14,7 @@ import customtkinter as ctk
 
 from utils.theme_helper import (
     COLOR_SUCCESS, COLOR_DANGER, COLOR_INFO,
-    FONT_BODY,
+    get_font,
     HEIGHT_TOAST, RADIUS_TOAST,
     SPACE_LG
 )
@@ -25,7 +25,7 @@ DURASI_TOAST_MS = 2500
 
 class ToastNotification(ctk.CTkLabel):
     """
-    Label notifikasi singkat yang muncul di pojok kanan bawah area konten.
+    Label notifikasi singkat yang muncul di pojok kanan atas area konten.
     Hilang otomatis setelah DURASI_TOAST_MS milidetik.
     """
 
@@ -44,7 +44,7 @@ class ToastNotification(ctk.CTkLabel):
         super().__init__(
             master,
             text=f"{ikon}  {pesan}",
-            font=FONT_BODY,
+            font=get_font("body"),
             fg_color=warna_bg,
             text_color="#FFFFFF",
             corner_radius=RADIUS_TOAST,
@@ -52,8 +52,9 @@ class ToastNotification(ctk.CTkLabel):
             padx=SPACE_LG
         )
 
-        # Tampilkan di pojok kanan bawah area konten — 24px dari tepi
-        self.place(relx=1.0, rely=1.0, anchor="se", x=-24, y=-24)
+        # Tampilkan di pojok kanan atas area konten — 24px dari tepi
+        # Menggunakan rely=0 (atas) agar tidak overlap tombol di bagian bawah
+        self.place(relx=1.0, rely=0.0, anchor="ne", x=-24, y=24)
 
         # Jadwalkan penghapusan toast setelah durasi habis
         self.after(DURASI_TOAST_MS, self._hilangkan)
@@ -65,14 +66,12 @@ class ToastNotification(ctk.CTkLabel):
         elif tipe == "error":
             return "✕", COLOR_DANGER
         else:
-            # Tipe 'info' atau tipe lain yang tidak dikenal
             return "ℹ", COLOR_INFO
 
     def _hilangkan(self):
         """
         Hapus widget toast dari tampilan.
-        Gunakan try-except untuk mengantisipasi jika widget sudah hancur
-        (misalnya pengguna menutup halaman sebelum durasi habis).
+        Gunakan try-except untuk mengantisipasi jika widget sudah hancur.
         """
         try:
             self.destroy()
@@ -84,11 +83,6 @@ def tampilkan_toast(master, pesan: str, tipe: str = "sukses") -> ToastNotificati
     """
     Fungsi pintasan untuk membuat dan menampilkan toast notifikasi.
     Kembalikan instance toast agar caller bisa menyimpan referensinya jika perlu.
-
-    Parameter:
-        master  — frame konten tempat toast ditampilkan
-        pesan   — teks yang ditampilkan
-        tipe    — 'sukses', 'error', atau 'info'
     """
     return ToastNotification(master, pesan, tipe)
 

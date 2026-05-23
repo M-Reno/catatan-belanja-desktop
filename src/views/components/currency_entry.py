@@ -15,7 +15,7 @@ from utils.theme_helper import (
     BG_INPUT, BORDER_COLOR, TEXT_PRIMARY, TEXT_PLACEHOLDER,
     TEXT_SECONDARY, ACCENT_PRIMARY, COLOR_DANGER,
     HEIGHT_INPUT, RADIUS_INPUT,
-    FONT_BODY, FONT_BODY_BOLD, FONT_SMALL,
+    get_font,
     SPACE_XS, SPACE_SM
 )
 from utils.format_helper import format_rupiah, parse_rupiah
@@ -39,7 +39,7 @@ class CurrencyEntry(ctk.CTkFrame):
             self.label = ctk.CTkLabel(
                 self,
                 text=label_teks,
-                font=FONT_BODY,
+                font=get_font("body"),
                 text_color=TEXT_PRIMARY
             )
             self.label.pack(anchor="w", pady=(0, SPACE_XS))
@@ -60,7 +60,7 @@ class CurrencyEntry(ctk.CTkFrame):
         self.label_prefix = ctk.CTkLabel(
             self.frame_input,
             text="Rp",
-            font=FONT_BODY_BOLD,
+            font=get_font("body_bold"),
             text_color=TEXT_SECONDARY,
             width=28
         )
@@ -70,7 +70,7 @@ class CurrencyEntry(ctk.CTkFrame):
         self.entry = ctk.CTkEntry(
             self.frame_input,
             placeholder_text=placeholder,
-            font=FONT_BODY,
+            font=get_font("body"),
             fg_color="transparent",
             border_width=0,
             text_color=TEXT_PRIMARY,
@@ -82,7 +82,7 @@ class CurrencyEntry(ctk.CTkFrame):
         self.label_error = ctk.CTkLabel(
             self,
             text="",
-            font=FONT_SMALL,
+            font=get_font("small"),
             text_color=COLOR_DANGER
         )
         self.label_error.pack(anchor="w")
