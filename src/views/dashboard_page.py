@@ -3,7 +3,7 @@ import sqlite3
 import customtkinter as ctk
 from utils.theme_helper import (
     BG_WINDOW, TEXT_PRIMARY, TEXT_SECONDARY,
-    FONT_HEADING_1, FONT_BODY, SPACE_SM, SPACE_XL
+    SPACE_SM, SPACE_XL, get_font
 )
 
 class DashboardPage(ctk.CTkFrame):
@@ -19,14 +19,14 @@ class DashboardPage(ctk.CTkFrame):
     def _buat_header(self):
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.grid(row=0, column=0, sticky="ew", padx=SPACE_XL, pady=(SPACE_XL, SPACE_SM))
-        ctk.CTkLabel(frame, text="Dashboard", font=FONT_HEADING_1,
+        ctk.CTkLabel(frame, text="Dashboard", font=get_font("heading_1"),
                      text_color=TEXT_PRIMARY, anchor="w").pack(anchor="w")
 
     def _buat_konten(self):
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.grid(row=1, column=0)
         ctk.CTkLabel(frame, text="Konten Dashboard akan diimplementasi di Tahap 7.",
-                     font=FONT_BODY, text_color=TEXT_SECONDARY).pack()
+                     font=get_font("body"), text_color=TEXT_SECONDARY).pack()
 
     def redraw_chart(self):
         """Dipanggil saat toggle dark/light mode — implementasi di Tahap 7."""

@@ -6,9 +6,14 @@ Sumber: Design System v1.5 §1, §9
 PENTING: Warna light/dark menggunakan Tuple[str, str], bukan list,
 agar kompatibel dengan type checker Pylance di VS Code.
 CTk menerima keduanya saat runtime, tapi Tuple lebih type-safe.
+
+CATATAN FONT: CTkFont harus dibuat SETELAH Tk root window ada.
+Gunakan fungsi get_font() — bukan variabel FONT_* langsung.
+Contoh: font=get_font("app_title")  bukan  font=FONT_APP_TITLE
 """
 
 import customtkinter as ctk
+from typing import Optional
 
 # ─── Background ───────────────────────────────────────────────────────────────
 BG_WINDOW        : tuple = ("#F0FDFA", "#0D1B1A")   # Jendela utama — putih teal / gelap teal
@@ -24,11 +29,11 @@ TEXT_SIDEBAR     : str   = "#FFFFFF"                 # Teks sidebar (selalu puti
 TEXT_PLACEHOLDER : tuple = ("#80C4BE", "#4B7A75")   # Placeholder input
 
 # ─── Aksen & Tombol ───────────────────────────────────────────────────────────
-ACCENT_PRIMARY   : tuple = ("#0D9488", "#14B8A6")   # Tombol utama, elemen aktif
-ACCENT_HOVER     : tuple = ("#0F766E", "#0D9488")   # Hover tombol utama
-ACCENT_SIDEBAR   : str   = "#14B8A6"                 # Item aktif di sidebar
-BTN_SECONDARY_BG : tuple = ("#CCFBF1", "#1E3533")   # Background tombol sekunder
-BTN_SECONDARY_TEXT: tuple = ("#0F2421", "#E8FAF8")  # Teks tombol sekunder
+ACCENT_PRIMARY    : tuple = ("#0D9488", "#14B8A6")   # Tombol utama, elemen aktif
+ACCENT_HOVER      : tuple = ("#0F766E", "#0D9488")   # Hover tombol utama
+ACCENT_SIDEBAR    : str   = "#14B8A6"                 # Item aktif di sidebar
+BTN_SECONDARY_BG  : tuple = ("#CCFBF1", "#1E3533")   # Background tombol sekunder
+BTN_SECONDARY_TEXT: tuple = ("#0F2421", "#E8FAF8")   # Teks tombol sekunder
 
 # ─── Status ───────────────────────────────────────────────────────────────────
 COLOR_SUCCESS    : tuple = ("#059669", "#34D399")   # Sukses — hijau emerald
@@ -49,20 +54,6 @@ CHART_GRID_LIGHT : str = "#99F6E4"
 CHART_GRID_DARK  : str = "#1E3533"
 CHART_TEXT_LIGHT : str = "#4B7A75"
 CHART_TEXT_DARK  : str = "#7BBFBA"
-
-# ─── Tipografi ────────────────────────────────────────────────────────────────
-FONT_APP_TITLE   = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
-FONT_HEADING_1   = ctk.CTkFont(family="Segoe UI", size=15, weight="bold")
-FONT_HEADING_2   = ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
-FONT_BODY        = ctk.CTkFont(family="Segoe UI", size=12)
-FONT_BODY_BOLD   = ctk.CTkFont(family="Segoe UI", size=12, weight="bold")
-FONT_SMALL       = ctk.CTkFont(family="Segoe UI", size=11)
-FONT_SMALL_BOLD  = ctk.CTkFont(family="Segoe UI", size=11, weight="bold")
-FONT_CURRENCY_LG = ctk.CTkFont(family="Segoe UI", size=22, weight="bold")
-FONT_CURRENCY_SM = ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
-FONT_NAV_ITEM    = ctk.CTkFont(family="Segoe UI", size=12)
-FONT_PERIOD_LABEL= ctk.CTkFont(family="Segoe UI", size=11)
-FONT_CAPTION     = ctk.CTkFont(family="Segoe UI", size=10)
 
 # ─── Spacing (pixel) ──────────────────────────────────────────────────────────
 SPACE_XS  : int = 4
@@ -92,3 +83,73 @@ RADIUS_BTN    : int = 8
 RADIUS_INPUT  : int = 8
 RADIUS_DIALOG : int = 12
 RADIUS_TOAST  : int = 8
+
+
+# ─── Tipografi — Lazy Singleton ───────────────────────────────────────────────
+#
+# CTkFont WAJIB dibuat setelah Tk root window ada.
+# Jika dibuat saat module di-import (level modul), akan error:
+#   RuntimeError: Too early to use font: no default root window
+#
+# Solusi: simpan di dict _font_cache, buat saat pertama kali dipanggil.
+# Gunakan: get_font("app_title")  bukan  FONT_APP_TITLE
+#
+# Nama font yang tersedia:
+#   app_title, heading_1, heading_2,
+#   body, body_bold, small, small_bold,
+#   currency_lg, currency_sm,
+#   nav_item, period_label, caption
+
+_font_cache: dict[str, ctk.CTkFont] = {}
+
+# Definisi font: nama → (family, size, weight)
+_FONT_DEFS: dict[str, tuple] = {
+    "app_title"    : ("Segoe UI", 16, "bold"),
+    "heading_1"    : ("Segoe UI", 15, "bold"),
+    "heading_2"    : ("Segoe UI", 13, "bold"),
+    "body"         : ("Segoe UI", 12, "normal"),
+    "body_bold"    : ("Segoe UI", 12, "bold"),
+    "small"        : ("Segoe UI", 11, "normal"),
+    "small_bold"   : ("Segoe UI", 11, "bold"),
+    "currency_lg"  : ("Segoe UI", 22, "bold"),
+    "currency_sm"  : ("Segoe UI", 13, "bold"),
+    "nav_item"     : ("Segoe UI", 12, "normal"),
+    "period_label" : ("Segoe UI", 11, "normal"),
+    "caption"      : ("Segoe UI", 10, "normal"),
+}
+
+
+def get_font(nama: str) -> ctk.CTkFont:
+    """
+    Kembalikan CTkFont berdasarkan nama token.
+    Font dibuat satu kali saat pertama dipanggil (lazy singleton).
+    Wajib dipanggil SETELAH Tk root window dibuat.
+
+    Contoh pemakaian:
+        ctk.CTkLabel(..., font=get_font("heading_1"))
+        ctk.CTkButton(..., font=get_font("body_bold"))
+    """
+    # Kembalikan dari cache jika sudah pernah dibuat
+    if nama in _font_cache:
+        return _font_cache[nama]
+
+    # Cek nama font valid
+    if nama not in _FONT_DEFS:
+        raise ValueError(
+            f"Font '{nama}' tidak dikenal. "
+            f"Pilihan: {', '.join(_FONT_DEFS.keys())}"
+        )
+
+    # Buat CTkFont baru dan simpan ke cache
+    family, size, weight = _FONT_DEFS[nama]
+    font = ctk.CTkFont(family=family, size=size, weight=weight)
+    _font_cache[nama] = font
+    return font
+
+
+def reset_font_cache() -> None:
+    """
+    Kosongkan cache font. Dipanggil jika Tk root window di-destroy
+    dan dibuat ulang (jarang terjadi, tapi aman untuk testing).
+    """
+    _font_cache.clear()

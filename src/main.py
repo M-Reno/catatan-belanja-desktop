@@ -35,10 +35,20 @@ def main() -> None:
     # Buat jendela utama
     window = ctk.CTk()
     window.title("Catatan Belanja")
+    
+    # Set ukuran window default — 80% dari layar untuk pengalaman terbaik
+    # Ini lebih reliable daripada maximize yang bisa menyembunyikan title bar
+    lebar_layar = window.winfo_screenwidth()
+    tinggi_layar = window.winfo_screenheight()
+    
+    lebar_window = int(lebar_layar * 0.8)
+    tinggi_window = int(tinggi_layar * 0.8)
+    pos_x = int((lebar_layar - lebar_window) / 2)
+    pos_y = int((tinggi_layar - tinggi_window) / 2)
+    
+    # Format: "widthxheight+x+y"
+    window.geometry(f"{lebar_window}x{tinggi_window}+{pos_x}+{pos_y}")
     window.minsize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
-
-    # Buka dalam kondisi full-size (maximize) — §7 Aturan UX
-    window.state("zoomed")
 
     # Impor dan buat AppShell setelah window siap
     from views.app_shell import AppShell
