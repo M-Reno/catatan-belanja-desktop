@@ -10,6 +10,7 @@ from typing import Callable, Optional
 import customtkinter as ctk
 
 from controllers.belanja_controller import BelanjaController
+from controllers.export_controller import ExportController
 from views.components.confirm_dialog import tampilkan_konfirmasi_hapus
 from views.components.toast_notification import tampilkan_toast_sukses, tampilkan_toast_error
 from utils.format_helper import format_rupiah, format_jumlah, hitung_harga_total
@@ -192,9 +193,10 @@ class DaftarBelanjaPage(ctk.CTkFrame):
     def __init__(self, master, koneksi: sqlite3.Connection, navigasi_ke):
         super().__init__(master, fg_color=BG_WINDOW, corner_radius=0)
 
-        self._koneksi  = koneksi
-        self._navigasi = navigasi_ke
-        self._ctrl     = BelanjaController(koneksi)
+        self._koneksi      = koneksi
+        self._navigasi     = navigasi_ke
+        self._ctrl         = BelanjaController(koneksi)
+        self._export_ctrl  = ExportController(koneksi)
 
         # Status periode terpilih
         self._id_periode: int = 0
@@ -1091,10 +1093,27 @@ class DaftarBelanjaPage(ctk.CTkFrame):
 
         self._entry_nama.fokus()
 
-    # ── EXPORT (stub — diimplementasi Tahap 10) ───────────────────────────────
+    # ── EXPORT ────────────────────────────────────────────────────────────────
+
+    def _jalankan_ekspor(self, tipe: str) -> None:
+        """
+        Jalankan ekspor PDF atau Excel untuk periode yang sedang aktif.
+        Export mengambil seluruh data periode — tidak terpengaruh filter tampilan (PRD §11.3.C).
+        """
+        if not self._id_periode:
+            tampilkan_toast_error(self, "Pilih periode terlebih dahulu.")
+            return
+        berhasil, pesan = self._export_ctrl.handle_ekspor(tipe, self._id_periode)
+        if not pesan:
+            # Pengguna membatalkan dialog — tidak perlu tampilkan apa-apa
+            return
+        if berhasil:
+            tampilkan_toast_sukses(self, pesan)
+        else:
+            tampilkan_toast_error(self, pesan)
 
     def _export_pdf(self) -> None:
-        tampilkan_toast_error(self, "Export PDF tersedia di Tahap 10.")
+        self._jalankan_ekspor("pdf")
 
     def _export_excel(self) -> None:
-        tampilkan_toast_error(self, "Export Excel tersedia di Tahap 10.")
+        self._jalankan_ekspor("excel")

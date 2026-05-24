@@ -9,7 +9,8 @@ from typing import Optional
 import customtkinter as ctk
 
 from controllers.riwayat_controller import RiwayatController
-from views.components.toast_notification import tampilkan_toast_error
+from controllers.export_controller import ExportController
+from views.components.toast_notification import tampilkan_toast_error, tampilkan_toast_sukses
 from utils.format_helper import format_rupiah, format_jumlah
 from utils.theme_helper import (
     BG_WINDOW, BG_SURFACE, BG_INPUT, BG_TABLE_ROW_ALT,
@@ -39,9 +40,10 @@ class RiwayatPage(ctk.CTkFrame):
     def __init__(self, master, koneksi: sqlite3.Connection, navigasi_ke):
         super().__init__(master, fg_color=BG_WINDOW, corner_radius=0)
 
-        self._koneksi  = koneksi
-        self._navigasi = navigasi_ke
-        self._ctrl     = RiwayatController(koneksi)
+        self._koneksi      = koneksi
+        self._navigasi     = navigasi_ke
+        self._ctrl         = RiwayatController(koneksi)
+        self._export_ctrl  = ExportController(koneksi)
 
         self._bulan_aktif = date.today().month
         self._tahun_aktif = date.today().year
@@ -209,7 +211,7 @@ class RiwayatPage(ctk.CTkFrame):
                 fg_color=BTN_SECONDARY_BG, hover_color=BORDER_COLOR,
                 text_color=TEXT_PRIMARY, height=HEIGHT_BTN_SECONDARY,
                 corner_radius=RADIUS_BTN, width=90,
-                command=lambda: tampilkan_toast_error(self, "Export tersedia di Tahap 10.")
+                command=lambda d=data: self._jalankan_ekspor("pdf", d["id_periode"])
             ).pack(side="left", padx=(0, SPACE_SM))
 
             ctk.CTkButton(
@@ -217,7 +219,7 @@ class RiwayatPage(ctk.CTkFrame):
                 fg_color=BTN_SECONDARY_BG, hover_color=BORDER_COLOR,
                 text_color=TEXT_PRIMARY, height=HEIGHT_BTN_SECONDARY,
                 corner_radius=RADIUS_BTN, width=95,
-                command=lambda: tampilkan_toast_error(self, "Export tersedia di Tahap 10.")
+                command=lambda d=data: self._jalankan_ekspor("excel", d["id_periode"])
             ).pack(side="left", padx=(0, SPACE_SM))
 
         # Tombol Detail selalu ada di semua card
@@ -522,10 +524,25 @@ class RiwayatPage(ctk.CTkFrame):
         self._label_footer_total.configure(
             text=f"Total: {format_rupiah(total_filter)}")
 
-    # ── EXPORT (stub — diimplementasi Tahap 10) ───────────────────────────────
+    # ── EXPORT ────────────────────────────────────────────────────────────────
+
+    def _jalankan_ekspor(self, tipe: str, id_periode: int) -> None:
+        """
+        Jalankan ekspor PDF atau Excel melalui ExportController.
+        Tampilkan toast sukses jika berhasil, atau toast error jika gagal.
+        Export selalu mengambil seluruh data periode — tidak terpengaruh filter (PRD §11.3.C).
+        """
+        berhasil, pesan = self._export_ctrl.handle_ekspor(tipe, id_periode)
+        if not pesan:
+            # Pengguna membatalkan dialog — tidak perlu tampilkan apa-apa
+            return
+        if berhasil:
+            tampilkan_toast_sukses(self, pesan)
+        else:
+            tampilkan_toast_error(self, pesan)
 
     def _export_pdf(self) -> None:
-        tampilkan_toast_error(self, "Export PDF tersedia di Tahap 10.")
+        self._jalankan_ekspor("pdf", self._id_periode_aktif)
 
     def _export_excel(self) -> None:
-        tampilkan_toast_error(self, "Export Excel tersedia di Tahap 10.")
+        self._jalankan_ekspor("excel", self._id_periode_aktif)

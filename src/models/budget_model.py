@@ -65,7 +65,7 @@ def simpan_budget(
     tgl_mulai: str,
     tgl_selesai: str,
     nominal_budget: float
-) -> int:
+) -> int | None:
     """
     Simpan budget baru ke tb_periode_budget.
     Kembalikan id_periode yang baru dibuat.

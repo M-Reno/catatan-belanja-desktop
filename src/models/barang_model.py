@@ -41,7 +41,7 @@ def ambil_barang_persis(koneksi: sqlite3.Connection, nama_barang: str) -> sqlite
     ).fetchone()
 
 
-def tambah_barang(koneksi: sqlite3.Connection, nama_barang: str, id_kategori: int) -> int:
+def tambah_barang(koneksi: sqlite3.Connection, nama_barang: str, id_kategori: int) -> int | None:
     """
     Tambah barang baru ke master data tb_barang.
     Gunakan INSERT OR IGNORE untuk menghindari error jika sudah ada.
