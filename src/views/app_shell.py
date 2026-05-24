@@ -183,6 +183,12 @@ class AppShell(ctk.CTkFrame):
         # Tampilkan halaman
         self._cache_halaman[nama_halaman].grid(row=0, column=0, sticky="nsew")
 
+        # Refresh dashboard setiap kali ditampilkan agar data selalu terkini
+        if nama_halaman == "dashboard":
+            halaman = self._cache_halaman["dashboard"]
+            if hasattr(halaman, "refresh"):
+                halaman.refresh()
+
         self._halaman_aktif = nama_halaman
         self._set_state_nav(nama_halaman)
 
